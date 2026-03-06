@@ -32,23 +32,28 @@ The daemon maintains four states:
 With the default parameters:
 
 * `soc_stop = 60` (enter **Stop** when SOC rises to this value)
+* `soc_limit = 55` (middle threshold for returning to **Limit**)
 * `soc_fast = 50` (enter **Fast** when SOC falls to this value)
-* `soc_hyst = 4`  (hysteresis width)
+* Constraint: `soc_fast < soc_limit < soc_stop` (otherwise program exits with error)
 
-Derived hysteresis thresholds:
-
-* `soc_stop_off = soc_stop - soc_hyst` = **56** (leave **Stop** when SOC falls to 56 or below)
-* `soc_fast_off = soc_fast + soc_hyst` = **54** (leave **Fast** when SOC rises to 54 or above)
-
-### State diagram
+### Online transitions
 
 ```mermaid
 stateDiagram-v2
-    Limit --> Stop: SOC >= soc_stop
-    Stop --> Limit: SOC <= soc_stop_off
+    Stop --> Limit: SOC ≤ soc_limit
+    Limit --> Fast: SOC ≤ soc_fast
+    Fast --> Limit: SOC ≥ soc_limit
+    Limit --> Stop: SOC ≥ soc_stop    
+```
 
-    Limit --> Fast: SOC <= soc_fast
-    Fast --> Limit: SOC >= soc_fast_off
+### Offline transitions
+
+```mermaid
+stateDiagram-v2
+    direction LR
+    Offline --> Stop: SOC ≥ soc_stop
+    Offline --> Fast: SOC ≤ soc_fast
+    Offline --> Limit: soc_fast < SOC < soc_stop
 ```
 
 
@@ -104,12 +109,13 @@ Options:
 
           [default: 50]
 
-      --soc-hyst <SOC_HYST>
-          Hysteresis width, in percentage points.
+      --soc-limit <SOC_LIMIT>
+          Middle threshold for Limit state.
 
-          Stop exits at soc_stop - soc_hyst. Fast exits at soc_fast + soc_hyst.
+          Stop exits to Limit when SOC falls to or below this value.
+          Fast exits to Limit when SOC rises to or above this value.
 
-          [default: 4]
+          [default: 55]
 
       --icl-stop-ua <ICL_STOP_UA>
           ICL value for Stop state, in microamps (uA).

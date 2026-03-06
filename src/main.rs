@@ -46,12 +46,12 @@ struct Args {
     #[arg(long, default_value_t = 50)]
     soc_fast: i64,
 
-    /// Hysteresis width, in percentage points.
+    /// Middle threshold for Limit state.
     ///
-    /// Stop exits at soc_stop - soc_hyst.
-    /// Fast exits at soc_fast + soc_hyst.
-    #[arg(long, default_value_t = 4)]
-    soc_hyst: i64,
+    /// Stop exits to Limit when SOC falls to or below this value.
+    /// Fast exits to Limit when SOC rises to or above this value.
+    #[arg(long, default_value_t = 55)]
+    soc_limit: i64,
 
     /// ICL value for Stop state, in microamps (uA).
     ///
@@ -91,9 +91,8 @@ fn next_state(
     usb_online: bool,
     soc: i64,
     soc_stop: i64,
+    soc_limit: i64,
     soc_fast: i64,
-    soc_stop_off: i64,
-    soc_fast_off: i64,
 ) -> ChargeState {
     if !usb_online {
         return ChargeState::Offline;
@@ -111,7 +110,7 @@ fn next_state(
         }
 
         ChargeState::Stop => {
-            if soc <= soc_stop_off {
+            if soc <= soc_limit {
                 ChargeState::Limit
             } else {
                 ChargeState::Stop
@@ -119,7 +118,7 @@ fn next_state(
         }
 
         ChargeState::Fast => {
-            if soc >= soc_fast_off {
+            if soc >= soc_limit {
                 ChargeState::Limit
             } else {
                 ChargeState::Fast
@@ -160,22 +159,18 @@ fn main() -> Result<()> {
 
     ensure_root()?;
 
-    if args.soc_hyst < 0 {
-        warn!("soc_hyst is negative ({}); this is unusual", args.soc_hyst);
-    }
-    if args.soc_fast >= args.soc_stop {
-        warn!(
-            "soc_fast ({}) >= soc_stop ({}) — ranges overlap",
-            args.soc_fast, args.soc_stop
+    if !(args.soc_fast < args.soc_limit && args.soc_limit < args.soc_stop) {
+        anyhow::bail!(
+            "invalid thresholds: require soc_fast ({}) < soc_limit ({}) < soc_stop ({})",
+            args.soc_fast,
+            args.soc_limit,
+            args.soc_stop
         );
     }
 
-    let soc_stop_off = args.soc_stop - args.soc_hyst;
-    let soc_fast_off = args.soc_fast + args.soc_hyst;
-
     info!(
-        "thresholds: fast<= {} fast_off>= {} stop>= {} stop_off<= {}",
-        args.soc_fast, soc_fast_off, args.soc_stop, soc_stop_off
+        "thresholds: fast<= {} limit={} stop>= {}",
+        args.soc_fast, args.soc_limit, args.soc_stop
     );
 
     let mut state = ChargeState::Offline;
@@ -202,9 +197,8 @@ fn main() -> Result<()> {
             usb_online,
             soc,
             args.soc_stop,
+            args.soc_limit,
             args.soc_fast,
-            soc_stop_off,
-            soc_fast_off,
         );
 
         let old_state = state;
