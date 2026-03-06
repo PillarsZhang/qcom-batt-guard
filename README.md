@@ -63,7 +63,7 @@ stateDiagram-v2
 ### Install as a systemd service
 
 ```bash
-sudo ./install.sh
+chmod +x install.sh && ./install.sh
 sudo journalctl -u qcom-batt-guard.service -f
 ```
 
@@ -112,8 +112,7 @@ Options:
       --soc-limit <SOC_LIMIT>
           Middle threshold for Limit state.
 
-          Stop exits to Limit when SOC falls to or below this value.
-          Fast exits to Limit when SOC rises to or above this value.
+          Stop exits to Limit when SOC falls to or below this value. Fast exits to Limit when SOC rises to or above this value.
 
           [default: 55]
 

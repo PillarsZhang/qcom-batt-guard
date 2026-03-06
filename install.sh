@@ -24,9 +24,10 @@ sudo install -m 0755 "target/release/${BIN_NAME}" "${BIN_DST}"
 echo "[3/5] Install systemd unit..."
 sudo install -m 0644 "${UNIT_SRC}" "${UNIT_DST}"
 
-echo "[4/5] Reload & enable & start service..."
+echo "[4/5] Reload unit and (re)activate service..."
 sudo systemctl daemon-reload
-sudo systemctl enable --now "${SERVICE_NAME}.service"
+sudo systemctl enable "${SERVICE_NAME}.service"
+sudo systemctl restart "${SERVICE_NAME}.service"
 
 echo "[5/5] Done."
 echo "Status:"
