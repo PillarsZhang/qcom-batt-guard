@@ -5,9 +5,10 @@ After=multi-user.target
 [Service]
 Type=simple
 ExecStart=/usr/local/sbin/qcom-batt-guard
-Restart=on-failure
+Restart=always
 RestartSec=5
-Environment=RUST_LOG=info
+User=root
+Group=root
 
 [Install]
 WantedBy=multi-user.target

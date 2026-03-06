@@ -66,7 +66,7 @@ sudo journalctl -u qcom-batt-guard.service -f
 
 ```bash
 cargo build --release
-sudo RUST_LOG=info ./target/release/qcom-batt-guard
+sudo ./target/release/qcom-batt-guard
 sudo RUST_LOG=debug ./target/release/qcom-batt-guard
 ```
 

@@ -5,7 +5,7 @@ SERVICE_NAME="qcom-batt-guard"
 BIN_NAME="qcom-batt-guard"
 
 ROOT_DIR="$(cd "$(dirname "$0")" && pwd)"
-UNIT_SRC="${ROOT_DIR}/${SERVICE_NAME}.service"
+UNIT_SRC="${ROOT_DIR}/systemd/${SERVICE_NAME}.service"
 UNIT_DST="/etc/systemd/system/${SERVICE_NAME}.service"
 BIN_DST="/usr/local/sbin/${BIN_NAME}"
 
