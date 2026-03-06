@@ -1,0 +1,13 @@
+[Unit]
+Description=Qualcomm Battery SOC Guard (ICL)
+After=multi-user.target
+
+[Service]
+Type=simple
+ExecStart=/usr/local/sbin/qcom-batt-guard
+Restart=on-failure
+RestartSec=5
+Environment=RUST_LOG=info
+
+[Install]
+WantedBy=multi-user.target
