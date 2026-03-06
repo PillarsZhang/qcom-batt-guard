@@ -2,7 +2,10 @@
 
 `qcom-batt-guard` is a small daemon that controls the charger input current limit to keep the battery state-of-charge (SOC) within a configured range.
 
-It periodically reads SOC from sysfs and adjusts `input_current_limit` accordingly.
+It reads SOC and charger online state from sysfs, then adjusts `input_current_limit` accordingly. It supports two snapshot sources:
+
+* `--mode udev` (default): listen for `power_supply` change uevents and refresh sysfs state on each event. This requires building with `--features udev`.
+* `--mode poll`: sleep for `--interval-ms` and then poll sysfs again
 
 ## Background
 
@@ -70,10 +73,13 @@ sudo journalctl -u qcom-batt-guard.service -f
 ### Running manually
 
 ```bash
-cargo build --release
+sudo apt install libudev-dev
+cargo build --release --features udev
 sudo ./target/release/qcom-batt-guard
 sudo RUST_LOG=debug ./target/release/qcom-batt-guard
 ```
+
+If you build without `--features udev`, selecting `--mode udev` will fail at startup with an explicit error.
 
 ### Command line options
 
@@ -89,7 +95,7 @@ Options:
 
           [default: /sys/class/power_supply/qcom-battery/capacity]
 
-      --usb-online-path <USB_ONLINE_PATH>
+      --online-path <ONLINE_PATH>
           Path to USB online sysfs node. Expected values are usually 0 or 1
 
           [default: /sys/class/power_supply/qcom-smbcharger-usb/online]
@@ -137,6 +143,12 @@ Options:
           Main loop interval, in milliseconds
 
           [default: 10000]
+
+      --mode <MODE>
+          Monitor mode: poll sysfs periodically or listen for udev power_supply events
+
+          [default: udev]
+          [possible values: poll, udev]
 
   -h, --help
           Print help (see a summary with '-h')

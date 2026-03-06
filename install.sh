@@ -14,9 +14,15 @@ if [[ ! -f "$UNIT_SRC" ]]; then
   exit 1
 fi
 
+if ! dpkg-query -W -f='${Status}' libudev-dev 2>/dev/null | grep -q "install ok installed"; then
+  echo "ERROR: missing build dependency: libudev-dev" >&2
+  echo "Install it with: sudo apt install libudev-dev" >&2
+  exit 1
+fi
+
 echo "[1/5] Build release..."
 cd "$ROOT_DIR"
-cargo build --release
+cargo build --release --features udev
 
 echo "[2/5] Install binary to ${BIN_DST}..."
 sudo install -m 0755 "target/release/${BIN_NAME}" "${BIN_DST}"

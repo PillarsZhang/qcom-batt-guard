@@ -3,9 +3,14 @@ name = "qcom-batt-guard"
 version = "0.1.0"
 edition = "2024"
 
+[features]
+default = []
+udev = ["dep:udev"]
+
 [dependencies]
 anyhow = "1.0.102"
 clap = { version = "4.5.60", features = ["derive"] }
 env_logger = "0.11.9"
 libc = "0.2.182"
 log = "0.4.29"
+udev = { version = "0.9.3", optional = true }
